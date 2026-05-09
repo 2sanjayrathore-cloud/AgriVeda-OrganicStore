@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="theme-color" content="#1F5F2E" />
+<title>AgriVeda — Pure Organic Inputs from Nature's Own Lab</title>
+<meta name="description" content="AgriVeda is a student-run organic store offering vermicompost, jeevamrit, neemastra, brahmastra, panchgavya and more — direct from the farm with AI plant doctor and instant WhatsApp billing." />
+
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700;9..144,800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+<link rel="stylesheet" href="styles.css" />
+
+<link rel="icon" href='data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><circle cx="32" cy="32" r="30" fill="%231F5F2E"/><text x="50%25" y="56%25" text-anchor="middle" font-size="36" fill="%23FFF6E0">🌿</text></svg>' />
+</head>
+<body>
+<div id="root">
+  <div class="boot-splash">
+    <div class="boot-mark">🌿</div>
+    <div class="boot-name">AgriVeda</div>
+    <div class="boot-tag">Loading the organic store…</div>
+  </div>
+</div>
+
+<!-- React + Babel (pinned) -->
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+<!-- Expose React hooks globally so JSX scripts can use them without imports -->
+<script>
+  window.useState = React.useState;
+  window.useEffect = React.useEffect;
+  window.useMemo = React.useMemo;
+  window.useRef = React.useRef;
+  window.useCallback = React.useCallback;
+  window.useContext = React.useContext;
+  window.createContext = React.createContext;
+  window.Fragment = React.Fragment;
+</script>
+
+<!-- Data layer -->
+<script src="data/products.js"></script>
+<script src="data/i18n.js"></script>
+<script src="data/store.js"></script>
+
+<!-- Shared UI components + helpers -->
+<script type="text/babel" src="components/ui.jsx" data-presets="react"></script>
+
+<!-- Pages -->
+<script type="text/babel" src="pages/public.jsx" data-presets="react"></script>
+<script type="text/babel" src="pages/student.jsx" data-presets="react"></script>
+<script type="text/babel" src="pages/ai.jsx" data-presets="react"></script>
+<script type="text/babel" src="pages/admin.jsx" data-presets="react"></script>
+
+<!-- App shell -->
+<script type="text/babel" data-presets="react">
+function NavBar(){
+  const [t, lang] = useT();
+  const [route, navigate] = useRoute();
+  const { count: cartCount } = useCart();
+  const [open, setOpen] = useState(false);
+
+  const links = [
+    { to: "/home",   label: t.nav.home,   ic:"🏠" },
+    { to: "/shop",   label: t.nav.shop,   ic:"🛍️" },
+    { to: "/doctor", label: t.nav.doctor, ic:"🩺" },
+    { to: "/chat",   label: t.nav.chat,   ic:"💬" },
+  ];
+
+  return (
+    <header className="navbar">
+      <div className="container nav-inner">
+        <a className="brand" href="#/home" onClick={(e) => { e.preventDefault(); navigate("/home"); }}>
+          <BrandLogo size={36} />
+          <div className="brand-text">
+            <strong>AgriVeda</strong>
+            <span>{lang==="hi"?"शुद्ध जैविक भंडार":"pure organic store"}</span>
+          </div>
+        </a>
+        <nav className={"nav-links " + (open ? "open" : "")}>
+          {links.map(l => (
+            <a key={l.to} className={"nav-link " + (route.startsWith(l.to) ? "active" : "")}
+               href={"#" + l.to}
+               onClick={(e) => { e.preventDefault(); setOpen(false); navigate(l.to); }}>
+              <span className="nav-ic">{l.ic}</span> {l.label}
+            </a>
+          ))}
+        </nav>
+        <div className="nav-actions">
+          <LangSwitch />
+          <button className="btn-icon ripple cart-btn" onClick={() => window.dispatchEvent(new CustomEvent("av:open-cart"))} title={t.nav.cart}>
+            <Icon name="cart" size={18}/>
+            {cartCount > 0 && <span className="cart-badge">{cartCount}</span>}
+          </button>
+          <button className="btn btn-ghost btn-sm ripple hide-md" onClick={() => navigate("/admin")}>
+            <Icon name="lock" size={13}/> {t.nav.admin}
+          </button>
+          <button className="hamburger" onClick={() => setOpen(o => !o)} aria-label="menu">
+            <span></span><span></span><span></span>
+          </button>
+        </div>
+      </div>
+    </header>
+  );
+}
+
+function App(){
+  const [route, navigate] = useRoute();
+  const [cartOpen, setCartOpen] = useState(false);
+
+  // Page-level keyboard shortcuts
+  useEffect(() => {
+    const onOpen = () => setCartOpen(true);
+    window.addEventListener("av:open-cart", onOpen);
+    return () => window.removeEventListener("av:open-cart", onOpen);
+  }, []);
+
+  // Routes
+  const Page = useMemo(() => {
+    if (route.startsWith("/shop"))     return ShopPage;
+    if (route.startsWith("/checkout")) return CheckoutPage;
+    if (route.startsWith("/order/"))   return OrderSuccess;
+    if (route.startsWith("/doctor"))   return DoctorPage;
+    if (route.startsWith("/chat"))     return ChatPage;
+    if (route.startsWith("/student"))  return StudentPortal;
+    if (route.startsWith("/admin"))    return AdminPortal;
+    return HomePage;
+  }, [route]);
+
+  // Hide navbar inside admin/student dashboards (already have own header)
+  const showNav = !route.startsWith("/admin") || !window.AVStore.isAdmin();
+  const showNavStudent = !route.startsWith("/student") || !window.AVStore.currentStudent();
+
+  return (
+    <ToastProvider>
+      {showNav && showNavStudent && <NavBar/>}
+      <Page/>
+      <CartDrawer open={cartOpen} onClose={() => setCartOpen(false)} />
+    </ToastProvider>
+  );
+}
+
+// Mount
+const root = ReactDOM.createRoot(document.getElementById("root"));
+root.render(<App/>);
+</script>
+
+</body>
+</html>
